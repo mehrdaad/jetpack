@@ -1041,10 +1041,45 @@ class Jetpack_Core_API_Data extends Jetpack_Core_API_XMLRPC_Consumer_Endpoint {
 			}
 		}
 
+		// Add/update business address widget
+		//
+		jetpack_require_lib( 'widgets' );
+		if ( isset( $data['businessInfo'] ) ) {
+			$first_sidebar = self::get_first_sidebar();
+			var_dump($first_sidebar);
+			$widget_options = $data['businessInfo']; //our input data
+			var_dump($data['businessInfo']);
+			if ( $first_sidebar ) {
+					if ( ! self::have_contact_info_widget( $first_sidebar ) ) {
+					self::insert_widget_in_sidebar( 'widget_contact_info', $widget_options, $first_sidebar );
+				} else {
+					self::update_widget_in_sidebar( 'widget_contact_info', $widget_options, $first_sidebar );
+				}
+			}
+		}
+
 		return empty( $error )
 			? ''
 			: join( ', ', $error );
 	}
+
+	public function get_first_sidebar() {
+			$active_sidebars = Jetpack_Widgets::get_active_sidebars();
+
+			$excluded_keys = array(
+				'wp_inactive_widgets',
+				'array_version',
+			);
+			foreach ( $excluded_keys as $key ) {
+				if ( isset( $active_sidebars[ $key ] ) ) {
+					unset( $active_sidebars[ $key ] );
+				}
+			}
+			if ( empty( $active_sidebars ) ) {
+				return false;
+			}
+			return array_shift( array_keys( $active_sidebars ) );
+		}
 
 	/**
 	 * Calls WPCOM through authenticated request to create, regenerate or delete the Post by Email address.
